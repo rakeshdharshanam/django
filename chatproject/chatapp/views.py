@@ -4,78 +4,64 @@ from .models import user
 
 from pymongo import MongoClient
 # Create your views here.
-
-client = MongoClient('localhost',27017)
-rakdb = client["rakesh"]
-rakcoll = rakdb["author"]
-doc = rakcoll.find({"name" : "rakesh"})
-signup_coll = rakdb["signup"]
-data = doc.next()
-print(data["name"])
-
-#data = {"name":"sanjana"}
-#rakcoll.insert_one(data)
-
-#for i in rakcoll.find():
-    #print(i)
-
-
-def signup(request):
-    username = request.GET.get("username")
-    password = request.GET.get("password")
-    signup_coll = rakdb["signup"]
-    data = {"username":username,"password":password}
-    check = signup_coll.count_documents({"username":username})
-    print("data is :"+str(check))
-    if(check):
-        return render(request,'signup.html',{"msg":"username already exits"})
-    else:
-        signup_coll.insert_one(data)
-        return render(request,'signup.html',{"msg":"signup completed"})
-
+connection = MongoClient('localhost',27017)
+db_rakesh = connection['rakesh']
+collection_users = db_rakesh['users']
 
 def login(request):
+    if request.session.get('username'):
+        return render(request,'chat_homepage.html',{"user":request.session.get('username')})
+    return render(request,'login.html')
+
+def login_validation(request):
     username = request.GET.get("username")
     password = request.GET.get("password")
-    if(signup_coll.count_documents({"username":username,"password":password}) and username != None ):
-        request.session['username'] = username
-        return render(request,'chatpage.html',{"username": username})
-    else:
-        return render(request,'login.html',{"msg":"username or password is wrong"})
-
-def index(request):
-    user1 = user()
-    user1.name = "rakesh"
-    user1.status = "online"
-
-    user2 = user()
-    user2.name = data["name"]
-    user2.status = "offline"
-
-    users = [user1, user2,]
-
-    chat_history1 = ["hi baby","i love you",]
-    chat_history2 = ["hi","love you too",]
-    return render(request,'index.html',{'users':users,'chathistory1':chat_history1,'chathistory2':chat_history2})
-
-
-
-
-
-def chat_page(request):
-    username = request.session["username"]
-    print("data is:")
     print(username)
-    user1 = user()
-    user1.name = "rakesh"
-    user1.status = "online"
+    if username == None or username =="":
+        return render(request,'login.html',{"msg":"please enter the credentials"})
+    doc = collection_users.find({"username":username})
+    data = doc.next()
+    print(data["username"])
+    if data["username"]==username and data["password"]==password:
+        request.session['username'] = username
+        return render(request,'chat_homepage.html',{"user":request.session.get('username')})
+    else:
+        return render(request,'login.html',{"msg":"invalid user credentials"})
 
-    user2 = user()
-    user2.name = data["name"]
-    user2.status = "offline"
 
-    users = [user1, user2,]
+def chat_homepage(request):
+    return render(request,'chat_homepage.html',{"user":request.session.get('username')})
 
-    chat_history1 = ["hi ","i love you baby",]
-    chat_history2 = ["hi","love you too baby",]
-    return render(request,'chatpage.html',{'users':users,'chathistory1':chat_history1,'chathistory2':chat_history2})
+def logout(request):
+    request.session.flush()
+    return render(request,'login.html')
+
+
+def new_message(request):
+    new_msg = request.GET.get('message')
+    rakeshsanjana = db_rakesh['rakeshsanjana']
+    if request.session.get('username') == 'rakesh':
+        rakeshsanjana.insert_one({'sender':'rakesh','receiver':'sanjana','message':new_msg})
+        doc = rakeshsanjana.find().sort("_id",-1).limit(10)
+        data = []
+        for msg in doc:
+            data.append(msg)
+        data.reverse()
+        return render(request,'chat_homepage.html',{'user':request.session.get('username'),"data":data})
+    else:
+        rakeshsanjana.insert_one({'sender':'sanjana','receiver':'rakesh','message':new_msg})
+        doc = rakeshsanjana.find().sort("_id",-1).limit(10)
+        data = []
+        for msg in doc:
+            data.append(msg)
+        data.reverse()
+        return render(request,'chat_homepage.html',{'user':request.session.get('username'),"data":data})
+
+def refresh(request):
+    rakeshsanjana = db_rakesh['rakeshsanjana']
+    doc = rakeshsanjana.find().sort("_id",-1).limit(10)
+    data = []
+    for msg in doc:
+        data.append(msg)
+    data.reverse()
+    return render(request,'chat_homepage.html',{'user':request.session.get('username'),"data":data})
