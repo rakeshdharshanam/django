@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import user
-
+import pymongo
 from pymongo import MongoClient
 # Create your views here.
 connection = MongoClient('localhost',27017)

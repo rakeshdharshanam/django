@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<h1>Hi {{user}}</h1>
+
+  <!--a href="logout"><button>Logout</button-->
+	<form action = "logout"  >
+		<button type="submit" value="login">logout</button>
+</form>
+
+		{% for msg in data%}
+
+		
+		<h2>{{msg.sender}}:{{msg.message}}</h2>
+
+		{%  endfor %}
+
+			<form action = "newmessage" method = GET id = "messageform">
+					<input type="text" name="message" placeholder="enter message">
+                    <button type="submit" form="messageform" value="login">send</button>
+			</form>
+
+			
+			<form action = "refresh"  >
+				<button type="submit" value="refresh">refresh</button>
+		</form>
+		
+
+
+<!-- partial -->
+  
+</body>
+</html>
