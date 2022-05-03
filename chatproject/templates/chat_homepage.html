@@ -14,9 +14,15 @@
 
 		{% for msg in data%}
 
-		
+		{% if '.' in msg.message %}
+		<h2>{{msg.sender}} : </h2>
+		<img src="/media/{{msg.message}}"  width="200" height="300">
+			
+		{% else %}
+
 		<h2>{{msg.sender}}:{{msg.message}}</h2>
 
+		{% endif %}
 		{%  endfor %}
 
 			<form action = "newmessage" method = GET id = "messageform">
@@ -30,7 +36,14 @@
 		</form>
 		
 
+		<form action = "uploadfile" method = "POST" id = "fileform" enctype="multipart/form-data" >
+			{% csrf_token %}
+			<input type="file" name="filename">
+			<button type="submit" form="fileform" >upload</button>
+	</form>
 
+
+	<h1>{{fname}}</h1>
 <!-- partial -->
   
 </body>

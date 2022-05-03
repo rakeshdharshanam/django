@@ -1,9 +1,10 @@
+import os
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import user
-import pymongo
 from pymongo import MongoClient
+from django.core.files.storage import FileSystemStorage
 # Create your views here.
+
 connection = MongoClient('localhost',27017)
 db_rakesh = connection['rakesh']
 collection_users = db_rakesh['users']
@@ -65,3 +66,27 @@ def refresh(request):
         data.append(msg)
     data.reverse()
     return render(request,'chat_homepage.html',{'user':request.session.get('username'),"data":data})
+
+def upload_file(request):
+    if request.method == "POST":
+        fs = FileSystemStorage()
+        uploaded_file = request.FILES['filename']
+        fs.save(uploaded_file.name,uploaded_file)
+        url = fs.url
+        rakeshsanjana = db_rakesh['rakeshsanjana']
+        if request.session.get('username') == 'rakesh':
+            rakeshsanjana.insert_one({'sender':'rakesh','receiver':'sanjana','message':uploaded_file.name})
+            doc = rakeshsanjana.find().sort("_id",-1).limit(10)
+            data = []
+            for msg in doc:
+                data.append(msg)
+            data.reverse()
+            return render(request,'chat_homepage.html',{'user':request.session.get('username'),'data':data})
+        else:
+            rakeshsanjana.insert_one({'sender':'sanjana','receiver':'rakesh','message':uploaded_file.name})
+            doc = rakeshsanjana.find().sort("_id",-1).limit(10)
+            data = []
+            for msg in doc:
+                data.append(msg)
+            data.reverse()
+            return render(request,'chat_homepage.html',{'user':request.session.get('username'),'data':data})

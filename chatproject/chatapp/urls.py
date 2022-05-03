@@ -1,4 +1,3 @@
-import imp
 from django.contrib import admin
 from django.urls import path
 from chatapp import views
@@ -9,5 +8,6 @@ urlpatterns = [
     path('chathomepage',views.chat_homepage),
     path('logout',views.logout),
     path('newmessage',views.new_message),
-    path('refresh',views.refresh)
+    path('refresh',views.refresh),
+    path('uploadfile',views.upload_file),
 ]
